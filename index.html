@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SmartLife & Finance AI — Hábitos y Cartera de Proyectos</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Inter', sans-serif; background-color: #0f172a; color: #f8fafc; }
+    .glass { background: rgba(30, 41, 59, 0.75); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.08); }
+  </style>
+</head>
+<body class="min-h-screen pb-16">
+
+  <!-- HEADER -->
+  <header class="border-b border-slate-800 bg-slate-900/90 sticky top-0 z-30 backdrop-blur">
+    <div class="max-w-7xl mx-auto px-4 py-4 flex flex-wrap justify-between items-center gap-4">
+      <div>
+        <h1 class="text-xl font-bold bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent">
+          SmartPulse AI: Hábitos & Finanzas
+        </h1>
+        <p class="text-xs text-slate-400">Control de rachas semanales, gastos hormiga y cartera de inversión</p>
+      </div>
+      <div class="flex items-center gap-3 text-xs bg-slate-800/90 px-3 py-2 rounded-xl border border-slate-700">
+        <span class="text-slate-400">TC Dólar Hoy (S/):</span>
+        <input id="fxRateInput" type="number" step="0.01" value="3.44" 
+          class="w-16 bg-slate-900 text-emerald-400 font-semibold px-2 py-1 rounded border border-slate-700 focus:outline-none"
+          onchange="updateConfig()" />
+        <span id="usdConvertedBadge" class="text-amber-400 font-medium">$20 = S/ 68.80</span>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-7xl mx-auto px-4 mt-6 space-y-8">
+
+    <!-- SECCIÓN 1: AGENTE INTELIGENTE & RESUMEN DE CARTERA -->
+    <section class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <!-- Tarjeta del Agente IA -->
+      <div class="lg:col-span-2 glass rounded-2xl p-6 border-l-4 border-l-emerald-400">
+        <div class="flex items-center justify-between mb-3">
+          <div class="flex items-center gap-2">
+            <span class="inline-block w-3 h-3 rounded-full bg-emerald-400 animate-pulse"></span>
+            <h2 class="font-bold text-base text-white">Agente Financiero Inteligente (Diagnóstico en Vivo)</h2>
+          </div>
+          <span class="text-xs px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-300 border border-emerald-500/20">
+            Monitoreo Activo
+          </span>
+        </div>
+        <div id="aiAgentInsights" class="space-y-2.5 text-sm text-slate-200"></div>
+      </div>
+
+      <!-- Tarjeta de Cartera de Proyecto y Ahorro -->
+      <div class="glass rounded-2xl p-6 flex flex-col justify-between">
+        <div>
+          <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-400">Capital Libre Después de Gastos</h3>
+          <div id="netAvailableDisplay" class="text-3xl font-bold text-emerald-400 mt-1">S/ 0.00</div>
+          <p class="text-xs text-slate-400 mt-1">Descontando comisión (S/ 333), $20 USD y gastos registrados</p>
+        </div>
+
+        <div class="mt-5 pt-4 border-t border-slate-800 space-y-3">
+          <div class="flex justify-between items-center text-xs">
+            <span class="text-slate-300">Distribución a Cartera de Proyecto (<span id="projPctLabel">60</span>%):</span>
+            <span id="projectWalletAmount" class="font-bold text-cyan-400 text-sm">S/ 0.00</span>
+          </div>
+          <input id="projectSplitSlider" type="range" min="10" max="90" step="5" value="60" 
+            class="w-full accent-cyan-400 cursor-pointer" oninput="updateConfig()" />
+          <div class="flex justify-between items-center text-xs">
+            <span class="text-slate-300">Fondo de Ahorro / Emergencia (<span id="savePctLabel">40</span>%):</span>
+            <span id="emergencySavingsAmount" class="font-bold text-emerald-400 text-sm">S/ 0.00</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECCIÓN 2: CONFIGURACIÓN BASE Y GESTOR DE CATEGORÍAS PERSONALIZABLES -->
+    <section class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      
+      <!-- Parámetros Fijos y Registro de Gastos -->
+      <div class="lg:col-span-5 glass rounded-2xl p-6 space-y-5">
+        <h2 class="font-bold text-base text-white border-b border-slate-800 pb-2">1. Reglas Base de Ingreso y Descuentos</h2>
+        
+        <div class="grid grid-cols-2 gap-3 text-xs">
+          <div>
+            <label class="text-slate-400 block mb-1">Sueldo Mensual (Mín. S/ 1100)</label>
+            <input id="salaryInput" type="number" min="1100" value="1100"
+              class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white font-semibold"
+              onchange="updateConfig()" />
+          </div>
+          <div>
+            <label class="text-slate-400 block mb-1">Comisión Fija a Restar (S/)</label>
+            <input id="commissionInput" type="number" value="333"
+              class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-rose-400 font-semibold"
+              onchange="updateConfig()" />
+          </div>
+          <div>
+            <label class="text-slate-400 block mb-1">Deducción Fija en Dólares ($)</label>
+            <input id="usdFixedInput" type="number" value="20"
+              class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-amber-400 font-semibold"
+              onchange="updateConfig()" />
+          </div>
+          <div>
+            <label class="text-slate-400 block mb-1">Ingreso Neto Inicial (S/)</label>
+            <div id="baseAfterDeductions" class="w-full bg-slate-800/80 border border-slate-700 rounded-lg px-3 py-2 text-emerald-300 font-bold">
+              S/ 698.20
+            </div>
+          </div>
+        </div>
+
+        <!-- Creador de Categorías a Medida -->
+        <div class="pt-3 border-t border-slate-800">
+          <h3 class="font-semibold text-sm text-white mb-2">Crear / Editar Tipos de Gasto Propios</h3>
+          <p class="text-xs text-slate-400 mb-3">No dependas de listas fijas: crea tus propias etiquetas (ej. Pasaje Colectivo, Golosinas, Deuda Tarjeta, Materiales).</p>
+          <div class="flex gap-2">
+            <input id="newCatName" type="text" placeholder="Nombre (ej. Dulces / Gasto Hormiga)" 
+              class="flex-1 bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white" />
+            <select id="newCatRole" class="bg-slate-900 border border-slate-700 rounded-lg px-2 py-2 text-xs text-slate-300">
+              <option value="pasaje">Tipo: Pasaje</option>
+              <option value="hormiga">Tipo: Gasto Hormiga</option>
+              <option value="deuda">Tipo: Deuda</option>
+              <option value="general">Tipo: Libre / Otro</option>
+            </select>
+            <button onclick="addCustomCategory()" class="bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-semibold px-3 py-2 rounded-lg text-xs transition">
+              + Crear
+            </button>
+          </div>
+          <div id="customCategoriesList" class="flex flex-wrap gap-1.5 mt-3"></div>
+        </div>
+
+        <!-- Formulario para Agregar Gasto Diario -->
+        <div class="pt-3 border-t border-slate-800">
+          <h3 class="font-semibold text-sm text-white mb-2">Registrar Nuevo Gasto del Día</h3>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
+            <input id="expDesc" type="text" placeholder="Detalle (ej. Galleta y gaseosa)" 
+              class="bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white" />
+            <select id="expCatSelect" class="bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white"></select>
+            <div class="flex gap-1">
+              <input id="expAmount" type="number" step="0.5" placeholder="Monto S/" 
+                class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white" />
+              <button onclick="addExpense()" class="bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold px-3 py-2 rounded-lg transition">
+                Guardar
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Historial de Gastos y Gráfico Financiero -->
+      <div class="lg:col-span-7 glass rounded-2xl p-6 flex flex-col justify-between">
+        <div>
+          <div class="flex justify-between items-center border-b border-slate-800 pb-2 mb-4">
+            <h2 class="font-bold text-base text-white">2. Movimientos Registrados y Peso por Categoría</h2>
+            <span id="totalExpensesBadge" class="text-xs text-rose-400 font-semibold">Total Gastos Variables: S/ 0.00</span>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
+            <div class="h-52 flex items-center justify-center">
+              <canvas id="financeChart"></canvas>
+            </div>
+            <div id="expensesListContainer" class="max-h-56 overflow-y-auto space-y-2 pr-1 text-xs"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECCIÓN 3: PANEL INTERACTIVO DE HÁBITOS Y RACHAS SEMANALES -->
+    <section class="glass rounded-2xl p-6">
+      <div class="flex flex-wrap justify-between items-center gap-4 border-b border-slate-800 pb-4 mb-6">
+        <div>
+          <h2 class="font-bold text-base text-white">3. Panel de Hábitos Diarios y Rachas Semanales</h2>
+          <p class="text-xs text-slate-400">Marca tus objetivos cumplidos cada día para elevar tu racha y medir tu consistencia semanal.</p>
+        </div>
+        <div class="flex gap-2">
+          <input id="newHabitInput" type="text" placeholder="Nuevo hábito (ej. Revisar gastos hormiga)" 
+            class="bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white w-64" />
+          <button onclick="addHabit()" class="bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-semibold px-3 py-1.5 rounded-lg text-xs transition">
+            + Agregar Hábito
+          </button>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
+        <!-- Tabla Interactiva de Hábitos -->
+        <div class="lg:col-span-7 overflow-x-auto">
+          <table class="w-full text-left border-collapse text-xs">
+            <thead>
+              <tr class="border-b border-slate-800 text-slate-400">
+                <th class="py-2 pr-3">Hábito / Objetivo Diario</th>
+                <th class="py-2 px-2 text-center">Lun</th>
+                <th class="py-2 px-2 text-center">Mar</th>
+                <th class="py-2 px-2 text-center">Mié</th>
+                <th class="py-2 px-2 text-center">Jue</th>
+                <th class="py-2 px-2 text-center">Vie</th>
+                <th class="py-2 px-2 text-center">Sáb</th>
+                <th class="py-2 px-2 text-center">Dom</th>
+                <th class="py-2 pl-3 text-center">Racha</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="habitsTableBody" class="divide-y divide-slate-800/60"></tbody>
+          </table>
+        </div>
+
+        <!-- Gráfico de Rachas Semanales -->
+        <div class="lg:col-span-5 bg-slate-900/60 rounded-xl p-4 border border-slate-800">
+          <h3 class="text-xs font-semibold text-slate-300 mb-2">Cumplimiento Diario y Curva de Racha (%)</h3>
+          <div class="h-48">
+            <canvas id="habitsChart"></canvas>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <script>
+    const DAYS = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
+
+    let state = JSON.parse(localStorage.getItem('smartPulseState_v1')) || {
+      salary: 1100,
+      commission: 333,
+      usdFixed: 20,
+      fxRate: 3.44,
+      projectSplit: 60,
+      categories: [
+        { id: 'c1', name: 'Pasaje Urbano', role: 'pasaje' },
+        { id: 'c2', name: 'Golosinas / Antojos', role: 'hormiga' },
+        { id: 'c3', name: 'Cuota de Deuda', role: 'deuda' },
+        { id: 'c4', name: 'Alimentación / Otros', role: 'general' }
+      ],
+      expenses: [
+        { id: 'e1', desc: 'Pasajes ida y vuelta semana 1', catId: 'c1', amount: 35 },
+        { id: 'e2', desc: 'Café, galletas y dulces', catId: 'c2', amount: 18 },
+        { id: 'e3', desc: 'Abono deuda tarjeta', catId: 'c3', amount: 80 }
+      ],
+      habits: [
+        { id: 'h1', name: 'Registrar mis pasajes y gastos del día', days: [true, true, true, true, false, false, false] },
+        { id: 'h2', name: 'Cero dulces o gastos hormiga innecesarios', days: [true, false, true, true, true, false, false] },
+        { id: 'h3', name: 'Avanzar 1 hora en mi proyecto de negocio', days: [true, true, true, true, true, false, false] }
+      ]
+    };
+
+    let financeChartInstance = null;
+    let habitsChartInstance = null;
+
+    function saveState() {
+      localStorage.setItem('smartPulseState_v1', JSON.stringify(state));
+      renderAll();
+    }
+
+    function updateConfig() {
+      let sal = parseFloat(document.getElementById('salaryInput').value) || 1100;
+      if (sal < 1100) {
+        sal = 1100;
+        document.getElementById('salaryInput').value = 1100;
+      }
+      state.salary = sal;
+      state.commission = parseFloat(document.getElementById('commissionInput').value) || 0;
+      state.usdFixed = parseFloat(document.getElementById('usdFixedInput').value) || 0;
+      state.fxRate = parseFloat(document.getElementById('fxRateInput').value) || 3.44;
+      state.projectSplit = parseInt(document.getElementById('projectSplitSlider').value) || 60;
+      saveState();
+    }
+
+    function addCustomCategory() {
+      const nameInput = document.getElementById('newCatName');
+      const roleSelect = document.getElementById('newCatRole');
+      const name = nameInput.value.trim();
+      if (!name) return;
+      state.categories.push({
+        id: 'cat_' + Date.now(),
+        name,
+        role: roleSelect.value
+      });
+      nameInput.value = '';
+      saveState();
+    }
+
+    function removeCategory(id) {
+      if (state.categories.length <= 1) return;
+      state.categories = state.categories.filter(c => c.id !== id);
+      state.expenses = state.expenses.filter(e => e.catId !== id);
+      saveState();
+    }
+
+    function addExpense() {
+      const desc = document.getElementById('expDesc').value.trim();
+      const catId = document.getElementById('expCatSelect').value;
+      const amount = parseFloat(document.getElementById('expAmount').value);
+      if (!desc || !catId || isNaN(amount) || amount <= 0) return;
+      state.expenses.unshift({ id: 'exp_' + Date.now(), desc, catId, amount });
+      document.getElementById('expDesc').value = '';
+      document.getElementById('expAmount').value = '';
+      saveState();
+    }
+
+    function deleteExpense(id) {
+      state.expenses = state.expenses.filter(e => e.id !== id);
+      saveState();
+    }
+
+    function addHabit() {
+      const input = document.getElementById('newHabitInput');
+      const name = input.value.trim();
+      if (!name) return;
+      state.habits.push({ id: 'hab_' + Date.now(), name, days: [false, false, false, false, false, false, false] });
+      input.value = '';
+      saveState();
+    }
+
+    function toggleHabitDay(habitId, dayIndex) {
+      const habit = state.habits.find(h => h.id === habitId);
+      if (habit) {
+        habit.days[dayIndex] = !habit.days[dayIndex];
+        saveState();
+      }
+    }
+
+    function deleteHabit(habitId) {
+      state.habits = state.habits.filter(h => h.id !== habitId);
+      saveState();
+    }
+
+    function calculateStreak(daysArr) {
+      let current = 0;
+      let max = 0;
+      for (let d of daysArr) {
+        if (d) { current++; if (current > max) max = current; }
+        else { current = 0; }
+      }
+      return max;
+    }
+
+    function renderAll() {
+      // Sincronizar inputs
+      document.getElementById('salaryInput').value = state.salary;
+      document.getElementById('commissionInput').value = state.commission;
+      document.getElementById('usdFixedInput').value = state.usdFixed;
+      document.getElementById('fxRateInput').value = state.fxRate;
+      document.getElementById('projectSplitSlider').value = state.projectSplit;
+
+      const usdInSoles = state.usdFixed * state.fxRate;
+      document.getElementById('usdConvertedBadge').textContent = `$${state.usdFixed} = S/ ${usdInSoles.toFixed(2)}`;
+
+      const initialNet = state.salary - state.commission - usdInSoles;
+      document.getElementById('baseAfterDeductions').textContent = `S/ ${initialNet.toFixed(2)}`;
+
+      // Renderizar chips de categorías editables y select
+      const catListEl = document.getElementById('customCategoriesList');
+      const selectEl = document.getElementById('expCatSelect');
+      catListEl.innerHTML = '';
+      selectEl.innerHTML = '';
+
+      const roleColors = {
+        pasaje: 'bg-amber-500/20 text-amber-300 border-amber-500/30',
+        hormiga: 'bg-rose-500/20 text-rose-300 border-rose-500/30',
+        deuda: 'bg-indigo-500/20 text-indigo-300 border-indigo-500/30',
+        general: 'bg-cyan-500/20 text-cyan-300 border-cyan-500/30'
+      };
+
+      state.categories.forEach(c => {
+        const badge = document.createElement('span');
+        badge.className = `inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs border ${roleColors[c.role] || roleColors.general}`;
+        badge.innerHTML = `${c.name} <button onclick="removeCategory('${c.id}')" class="hover:text-white font-bold">&times;</button>`;
+        catListEl.appendChild(badge);
+
+        const opt = document.createElement('option');
+        opt.value = c.id;
+        opt.textContent = c.name;
+        selectEl.appendChild(opt);
+      });
+
+      // Sumar gastos por rol y por categoría
+      let totalVarExpenses = 0;
+      let totalPasaje = 0;
+      let totalHormiga = 0;
+      let totalDeuda = 0;
+      const catTotals = {};
+
+      state.categories.forEach(c => catTotals[c.id] = 0);
+
+      const expContainer = document.getElementById('expensesListContainer');
+      expContainer.innerHTML = '';
+
+      state.expenses.forEach(e => {
+        totalVarExpenses += e.amount;
+        const cat = state.categories.find(c => c.id === e.catId);
+        if (cat) {
+          catTotals[cat.id] = (catTotals[cat.id] || 0) + e.amount;
+          if (cat.role === 'pasaje') totalPasaje += e.amount;
+          if (cat.role === 'hormiga') totalHormiga += e.amount;
+          if (cat.role === 'deuda') totalDeuda += e.amount;
+        }
+
+        const item = document.createElement('div');
+        item.className = 'flex justify-between items-center bg-slate-900/90 px-3 py-2 rounded-lg border border-slate-800';
+        item.innerHTML = `
+          <div>
+            <div class="font-medium text-slate-200">${e.desc}</div>
+            <div class="text-[11px] text-slate-400">${cat ? cat.name : 'Sin categoría'}</div>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="font-bold text-rose-400">- S/ ${e.amount.toFixed(2)}</span>
+            <button onclick="deleteExpense('${e.id}')" class="text-slate-500 hover:text-rose-400 text-sm">&times;</button>
+          </div>
+        `;
+        expContainer.appendChild(item);
+      });
+
+      document.getElementById('totalExpensesBadge').textContent = `Total Gastos Variables: S/ ${totalVarExpenses.toFixed(2)}`;
+
+      // Calcular capital libre y cartera
+      const netAvailable = Math.max(0, initialNet - totalVarExpenses);
+      const projAmount = netAvailable * (state.projectSplit / 100);
+      const saveAmount = netAvailable * ((100 - state.projectSplit) / 100);
+
+      document.getElementById('netAvailableDisplay').textContent = `S/ ${netAvailable.toFixed(2)}`;
+      document.getElementById('projPctLabel').textContent = state.projectSplit;
+      document.getElementById('savePctLabel').textContent = 100 - state.projectSplit;
+      document.getElementById('projectWalletAmount').textContent = `S/ ${projAmount.toFixed(2)}`;
+      document.getElementById('emergencySavingsAmount').textContent = `S/ ${saveAmount.toFixed(2)}`;
+
+      // Diagnóstico del Agente IA
+      const insightsEl = document.getElementById('aiAgentInsights');
+      const insights = [];
+
+      // 1. Alerta de Pasajes
+      const pasajeShare = (totalPasaje / initialNet) * 100;
+      if (pasajeShare > 20) {
+        insights.push(`⚠️ <strong>Alerta de Pasajes:</strong> Estás destinando <strong>S/ ${totalPasaje.toFixed(2)} (${pasajeShare.toFixed(1)}% de tu ingreso disponible)</strong> a movilidad. Considera abonos semanales o rutas integradas para ahorrar al menos S/ 30 al mes.`);
+      } else {
+        insights.push(`✅ <strong>Control de Pasajes:</strong> Llevas S/ ${totalPasaje.toFixed(2)} en movilidad (${pasajeShare.toFixed(1)}% de tu disponible), dentro de un rango saludable.`);
+      }
+
+      // 2. Alerta de Gastos Hormiga
+      if (totalHormiga > 40) {
+        insights.push(`🍬 <strong>Fuga en Gastos Hormiga Detectada:</strong> Tus dulces y compras pequeñas suman <strong>S/ ${totalHormiga.toFixed(2)}</strong>. Si reduces este rubro a la mitad, inyectarías <strong>S/ ${(totalHormiga * 6).toFixed(2)} extra al año</strong> directo a tu cartera de proyecto.`);
+      } else {
+        insights.push(`🛡️ <strong>Gastos Hormiga Bajo Control:</strong> Solo has gastado S/ ${totalHormiga.toFixed(2)} en antojos/dulces. ¡Excelente disciplina!`);
+      }
+
+      // 3. Efecto Tipo de Cambio y Cartera
+      insights.push(`💱 <strong>Efecto Dólar ($${state.usdFixed} USD):</strong> Al tipo de cambio de S/ ${state.fxRate.toFixed(2)}, reservas S/ ${usdInSoles.toFixed(2)}. Te quedan <strong>S/ ${projAmount.toFixed(2)} listos para invertir en tu proyecto</strong> y <strong>S/ ${saveAmount.toFixed(2)} para ahorro líquido</strong>.`);
+
+      insightsEl.innerHTML = insights.map(i => `<p class="bg-slate-900/70 p-2.5 rounded-xl border border-slate-800">${i}</p>`).join('');
+
+      // Actualizar Gráfico Financiero
+      const labels = ['Comisión Fija', `$${state.usdFixed} USD`, ...state.categories.map(c => c.name), 'Libre (Ahorro + Proyecto)'];
+      const dataVals = [state.commission, usdInSoles, ...state.categories.map(c => catTotals[c.id] || 0), netAvailable];
+
+      if (financeChartInstance) financeChartInstance.destroy();
+      const ctxFin = document.getElementById('financeChart').getContext('2d');
+      financeChartInstance = new Chart(ctxFin, {
+        type: 'doughnut',
+        data: {
+          labels,
+          datasets: [{
+            data: dataVals,
+            backgroundColor: ['#f43f5e', '#f59e0b', '#38bdf8', '#a855f7', '#ec4899', '#6366f1', '#10b981'],
+            borderWidth: 0
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { position: 'right', labels: { color: '#cbd5e1', font: { size: 10 }, boxWidth: 10 } }
+          }
+        }
+      });
+
+      // Renderizar Tabla de Hábitos
+      const tbody = document.getElementById('habitsTableBody');
+      tbody.innerHTML = '';
+
+      const dailyCompletion = [0, 0, 0, 0, 0, 0, 0];
+
+      state.habits.forEach(h => {
+        h.days.forEach((done, idx) => { if (done) dailyCompletion[idx]++; });
+        const streak = calculateStreak(h.days);
+
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td class="py-2.5 pr-3 font-medium text-slate-200">${h.name}</td>
+          ${h.days.map((done, idx) => `
+            <td class="py-2 px-2 text-center">
+              <button onclick="toggleHabitDay('${h.id}',${idx})" 
+                class="w-6 h-6 rounded-lg font-bold transition ${done ? 'bg-emerald-500 text-slate-950' : 'bg-slate-800 text-slate-500 hover:bg-slate-700'}">
+                ${done ? '✓' : '·'}
+              </button>
+            </td>
+          `).join('')}
+          <td class="py-2 pl-3 text-center">
+            <span class="px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 font-bold">🔥 ${streak}d</span>
+          </td>
+          <td class="text-right">
+            <button onclick="deleteHabit('${h.id}')" class="text-slate-500 hover:text-rose-400 px-2">&times;</button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      // Actualizar Gráfico de Rachas Semanales
+      const totalHabits = Math.max(1, state.habits.length);
+      const pctPerDay = dailyCompletion.map(count => Math.round((count / totalHabits) * 100));
+
+      if (habitsChartInstance) habitsChartInstance.destroy();
+      const ctxHab = document.getElementById('habitsChart').getContext('2d');
+      habitsChartInstance = new Chart(ctxHab, {
+        type: 'bar',
+        data: {
+          labels: DAYS,
+          datasets: [{
+            label: '% Objetivos Cumplidos',
+            data: pctPerDay,
+            backgroundColor: '#10b981',
+            borderRadius: 6
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            y: { beginAtZero: true, max: 100, ticks: { color: '#94a3b8' }, grid: { color: 'rgba(148,163,184,0.1)' } },
+            x: { ticks: { color: '#94a3b8' }, grid: { display: false } }
+          },
+          plugins: { legend: { display: false } }
+        }
+      });
+    }
+
+    renderAll();
+  </script>
+</body>
+</html>
